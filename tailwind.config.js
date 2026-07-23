@@ -4,27 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          yellow: "#f59e0b",
-          orange: "#f97316",
-          navy: "#0d1117",
-          surface: "#111827",
-          border: "#1e293b",
-          muted: "#94a3b8",
-        },
+        gold: { DEFAULT: "#d4a017", light: "#f5c842", dark: "#a07810" },
+        steel: { DEFAULT: "#8a9bb0", light: "#b8c9d9", dark: "#4a5568" },
+        charcoal: { DEFAULT: "#1a1f2e", light: "#232938", dark: "#0f1117" },
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
       },
-      animation: {
-        float: "float 3s ease-in-out infinite",
-        "pulse-slow": "pulse 3s ease-in-out infinite",
-      },
-      keyframes: {
-        float: {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-8px)" },
-        },
+      boxShadow: {
+        "gold-sm": "0 4px 24px rgba(212,160,23,0.2)",
+        "gold-md": "0 8px 40px rgba(212,160,23,0.3)",
+        card: "0 4px 32px rgba(0,0,0,0.4)",
       },
     },
   },

@@ -1,23 +1,23 @@
-import { motion } from "framer-motion";
-import { FiArrowRight, FiPhone } from "react-icons/fi";
-import { HiCheckCircle } from "react-icons/hi";
-import { MdLocalShipping, MdPriceCheck, MdInventory2 } from "react-icons/md";
-import heroImg from "../assets/hero1.png";
+import { motion } from 'framer-motion';
+import { FiArrowRight, FiPhone } from 'react-icons/fi';
+import { MdVerified, MdLocalShipping, MdPriceCheck } from 'react-icons/md';
+import heroImg from '../assets/hero1.png';
 
-const badges = [
-  { icon: MdInventory2, text: "Always In Stock" },
-  { icon: MdPriceCheck, text: "Best Market Price" },
-  { icon: MdLocalShipping, text: "Fast Delivery" },
+const pills = [
+  { icon: MdVerified,       label: 'Certified Steel' },
+  { icon: MdPriceCheck,     label: 'Best Prices'     },
+  { icon: MdLocalShipping,  label: 'Fast Delivery'   },
 ];
 
 const stats = [
-  { value: "500+", label: "Happy Clients" },
-  { value: "50+", label: "Products" },
-  { value: "10+", label: "Years Supplying" },
-  { value: "99%", label: "On-Time Delivery" },
+  { value: '9+',   label: 'Bar Sizes'        },
+  { value: '500+', label: 'Happy Clients'    },
+  { value: '10+',  label: 'Years Supplying'  },
+  { value: '100%', label: 'Quality Assured'  },
 ];
 
-const fadeUp = (delay = 0) => ({
+const up = (delay = 0) => ({
+  initial:Up = (delay = 0) => ({
   initial: { opacity: 0, y: 28 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.6, delay, ease: "easeOut" },

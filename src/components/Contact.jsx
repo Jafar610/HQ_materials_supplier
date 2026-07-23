@@ -271,7 +271,7 @@ export default function Contact() {
                         </label>
                         <input
                           type="text"
-                          placeholder="John Kamau"
+                          placeholder="Jafar Mohamed"
                           value={form.name}
                           onChange={set("name")}
                           className={errors.name ? inputError : inputNormal}
@@ -289,7 +289,7 @@ export default function Contact() {
                         </label>
                         <input
                           type="email"
-                          placeholder="john@email.com"
+                          placeholder="jafar@email.com"
                           value={form.email}
                           onChange={set("email")}
                           className={errors.email ? inputError : inputNormal}
