@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HiMenuAlt3, HiX } from "react-icons/hi";
 import { FaPhoneAlt } from "react-icons/fa";
-import hqLogo from "../assets/HQ-logo.png";
+import rbclogo from "../assets/RBC-logo.png";
 
 const links = [
   { label: "Home", href: "#home" },
@@ -54,8 +54,8 @@ export default function Navbar() {
           className="flex items-center shrink-0"
         >
           <img
-            src={hqLogo}
-            alt="HQ Logo"
+            src={rbclogo}
+            alt="RBC Logo"
             className="h-10 w-auto object-contain"
           />
         </a>

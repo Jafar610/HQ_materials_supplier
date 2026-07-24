@@ -1,13 +1,25 @@
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MdEmail, MdLocationOn, MdCheckCircle, MdSend } from "react-icons/md";
+import {
+  MdEmail,
+  MdLocationOn,
+  MdCheckCircle,
+  MdSend,
+  MdAccessTime,
+  MdError,
+} from "react-icons/md";
 import { FaPhoneAlt } from "react-icons/fa";
+
+
+const WEB3FORMS_KEY = "fba2d708-3585-4626-b4b3-7c770542289a";
+
+const Map = lazy(() => import("./Map"));
 
 const details = [
   {
     icon: FaPhoneAlt,
     label: "Call Us",
-    value: "+251 923 634 847",
+    value: "+251 92 363 4847",
     sub: "Mon–Sat, 7am – 6pm",
     href: "tel:+251923634847",
     accent: "yellow",
@@ -15,9 +27,9 @@ const details = [
   {
     icon: MdEmail,
     label: "Email",
-    value: "orders@hqmaterials.com",
-    sub: "Reply within a few hours",
-    href: "mailto:orders@hqmaterials.com",
+    value: "jafarmohamed501@gmail.com",
+    sub: "Reply within hours",
+    href: "mailto:jafarmohamed501@gmail.com",
     accent: "sky",
   },
   {
@@ -30,58 +42,93 @@ const details = [
   },
 ];
 
-const accentMap = {
+const hours = [
+  { day: "Monday – Friday", time: "7:00 AM – 6:00 PM" },
+  { day: "Saturday", time: "8:00 AM – 4:00 PM" },
+  { day: "Sunday", time: "Closed" },
+];
+
+const amap = {
   yellow: { text: "text-yellow-400", bg: "bg-yellow-400/10" },
+  emerald: { text: "text-emerald-400", bg: "bg-emerald-400/10" },
   sky: { text: "text-sky-400", bg: "bg-sky-400/10" },
   rose: { text: "text-rose-400", bg: "bg-rose-400/10" },
 };
 
-const inputBase =
-  "w-full px-4 py-3.5 bg-[#1a2540] border text-white placeholder-slate-500 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all duration-250";
-const inputNormal = `${inputBase} border-[#2a3a56] focus:border-yellow-400/50 focus:ring-yellow-400/15`;
-const inputError = `${inputBase} border-rose-500/60 focus:border-rose-400/50 focus:ring-rose-400/10`;
+const base =
+  "w-full px-4 py-3.5 bg-[#1a2235] border text-white placeholder-slate-500 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all duration-250";
+const normal = `${base} border-white/[0.08] focus:border-yellow-400/50 focus:ring-yellow-400/15`;
+const error = `${base} border-rose-500/60 focus:border-rose-400/50 focus:ring-rose-400/10`;
 
 export default function Contact() {
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
-    material: "",
+    size: "",
     message: "",
   });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [errs, setErrs] = useState({});
+  const [loading, setL] = useState(false);
+  const [done, setDone] = useState(false);
+  const [sendErr, setSendErr] = useState("");
 
   const validate = () => {
     const e = {};
     if (!form.name.trim()) e.name = "Name is required";
     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email))
       e.email = "Valid email required";
-    if (!form.message.trim()) e.message = "Please describe what you need";
+    if (!form.message.trim()) e.message = "Please tell us what you need";
     return e;
   };
 
-  const handleSubmit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) {
-      setErrors(errs);
+    const v = validate();
+    if (Object.keys(v).length) {
+      setErrs(v);
       return;
     }
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setSubmitted(true);
-      setForm({ name: "", email: "", phone: "", material: "", message: "" });
-      setErrors({});
-    }, 1400);
+    setL(true);
+    setSendErr("");
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: `New Quote Request from ${form.name}`,
+          from_name: form.name,
+          email: form.email,
+          phone: form.phone || "Not provided",
+          bar_size: form.size || "Not specified",
+          message: form.message,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDone(true);
+        setForm({ name: "", email: "", phone: "", size: "", message: "" });
+        setErrs({});
+      } else {
+        setSendErr(
+          "Message failed to send. Please call us at +251 92 363 4847.",
+        );
+      }
+    } catch {
+      setSendErr("Network error. Please call us at +251 92 363 4847.");
+    } finally {
+      setL(false);
+    }
   };
 
   const set = (k) => (e) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
-    if (errors[k])
-      setErrors((er) => {
+    if (errs[k])
+      setErrs((er) => {
         const n = { ...er };
         delete n[k];
         return n;
@@ -91,13 +138,12 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="section-base py-24 lg:py-32 relative overflow-hidden"
+      className="py-24 lg:py-32 bg-[#0f1117] relative overflow-hidden"
     >
-      <div className="absolute top-0 left-0 w-72 h-72 bg-yellow-500/4 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-72 h-72 bg-orange-500/4 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 w-72 h-72 bg-yellow-500/[0.04] rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-72 h-72 bg-yellow-500/[0.03] rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -106,20 +152,23 @@ export default function Contact() {
           className="text-center mb-14"
         >
           <span className="inline-flex items-center gap-2 text-yellow-400 text-xs font-semibold tracking-widest uppercase mb-3">
-            <span className="w-5 h-[2px] bg-yellow-400" /> Order & Enquire{" "}
+            <span className="w-5 h-[2px] bg-yellow-400" /> Get In Touch{" "}
             <span className="w-5 h-[2px] bg-yellow-400" />
           </span>
           <h2 className="text-4xl sm:text-5xl font-black text-white leading-tight mb-4">
-            Ready to Order? <span className="text-gradient">Let's Talk.</span>
+            Ready to Order?{" "}
+            <span className="bg-gradient-to-r from-yellow-400 to-yellow-300 bg-clip-text text-transparent">
+              Let's Talk.
+            </span>
           </h2>
           <p className="text-slate-400 text-lg max-w-lg mx-auto">
-            Tell us what materials you need and we'll get back to you fast with
-            availability and pricing.
+            Tell us what size and quantity you need — we'll get back to you
+            quickly with availability and pricing.
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14">
-          {/* Left — contact details + map */}
+          {/* Left */}
           <motion.div
             initial={{ opacity: 0, x: -28 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -129,17 +178,17 @@ export default function Contact() {
           >
             <div className="mb-1">
               <h3 className="text-white font-bold text-xl mb-2">
-                Get In Touch Directly
+                Contact Us Directly
               </h3>
               <p className="text-slate-400 text-sm leading-relaxed">
-                Call us or send an enquiry. We respond quickly and keep the
-                process simple.
+                Call or WhatsApp for the fastest response. We're always ready to
+                help.
               </p>
             </div>
 
             {details.map(
               ({ icon: Icon, label, value, sub, href, accent }, i) => {
-                const a = accentMap[accent];
+                const a = amap[accent];
                 return (
                   <motion.a
                     key={label}
@@ -154,7 +203,7 @@ export default function Contact() {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.09, duration: 0.45 }}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-[#111827] border border-[#1e293b] hover:border-yellow-400/20 transition-all duration-250 group"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-[#111827] border border-white/[0.07] hover:border-yellow-400/25 transition-all duration-250 group"
                   >
                     <div
                       className={`w-11 h-11 rounded-xl ${a.bg} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-250`}
@@ -175,15 +224,36 @@ export default function Contact() {
               },
             )}
 
-            {/* Map embed */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="mt-1 rounded-2xl overflow-hidden border border-[#1e293b] shadow-xl shadow-black/40"
-            >
-              <div className="bg-[#111827] px-4 py-2.5 flex items-center gap-2 border-b border-[#1e293b]">
+            {/* Hours */}
+            <div className="p-4 rounded-2xl bg-[#111827] border border-white/[0.07]">
+              <div className="flex items-center gap-2 mb-3">
+                <MdAccessTime className="text-yellow-400 text-lg" />
+                <span className="text-white font-semibold text-sm">
+                  Business Hours
+                </span>
+              </div>
+              {hours.map(({ day, time }) => (
+                <div
+                  key={day}
+                  className="flex justify-between text-sm py-1 border-b border-white/[0.04] last:border-0"
+                >
+                  <span className="text-slate-400">{day}</span>
+                  <span
+                    className={
+                      time === "Closed"
+                        ? "text-slate-500"
+                        : "text-yellow-400 font-medium"
+                    }
+                  >
+                    {time}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Map */}
+            <div className="rounded-2xl overflow-hidden border border-white/[0.07] shadow-xl shadow-black/40">
+              <div className="bg-[#111827] px-4 py-2.5 flex items-center gap-2 border-b border-white/[0.06]">
                 <MdLocationOn className="text-yellow-400 text-base shrink-0" />
                 <span className="text-slate-300 text-xs font-semibold">
                   Addis Ababa, Ethiopia
@@ -194,20 +264,19 @@ export default function Contact() {
                   rel="noopener noreferrer"
                   className="ml-auto text-yellow-400 text-xs font-semibold hover:underline"
                 >
-                  Open in Maps ↗
+                  Open ↗
                 </a>
               </div>
-              <iframe
-                title="Addis Ababa Location"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126022.47388530478!2d38.6967!3d9.0107!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b85cef5ab402d%3A0x8467b6b037a24d49!2sAddis%20Ababa%2C%20Ethiopia!5e0!3m2!1sen!2s!4v1690000000000!5m2!1sen!2s"
-                width="100%"
-                height="220"
-                style={{ border: 0, display: "block" }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </motion.div>
+              <Suspense
+                fallback={
+                  <div className="h-[200px] bg-[#0f1117] flex items-center justify-center text-slate-500 text-sm">
+                    Loading map…
+                  </div>
+                }
+              >
+                <Map />
+              </Suspense>
+            </div>
           </motion.div>
 
           {/* Right — form */}
@@ -218,14 +287,14 @@ export default function Contact() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="lg:col-span-3"
           >
-            <div className="p-7 sm:p-9 rounded-2xl bg-[#111827] border border-[#1e293b]">
+            <div className="p-7 sm:p-9 rounded-2xl bg-[#111827] border border-white/[0.07]">
               <AnimatePresence mode="wait">
-                {submitted ? (
+                {done ? (
                   <motion.div
-                    key="success"
+                    key="ok"
                     initial={{ opacity: 0, scale: 0.92 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.92 }}
+                    exit={{ opacity: 0 }}
                     className="flex flex-col items-center justify-center py-14 text-center"
                   >
                     <motion.div
@@ -236,22 +305,22 @@ export default function Contact() {
                         stiffness: 180,
                         damping: 14,
                       }}
-                      className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-5 shadow-2xl shadow-yellow-500/30"
+                      className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-400 flex items-center justify-center mb-5 shadow-2xl shadow-yellow-500/30"
                     >
                       <MdCheckCircle className="text-black text-4xl" />
                     </motion.div>
                     <h3 className="text-white font-black text-2xl mb-2">
-                      Enquiry Sent!
+                      Quote Request Sent!
                     </h3>
                     <p className="text-slate-400 text-sm max-w-xs mb-7">
                       We'll review your request and get back to you within a few
                       hours with pricing and availability.
                     </p>
                     <button
-                      onClick={() => setSubmitted(false)}
+                      onClick={() => setDone(false)}
                       className="px-6 py-3 border border-yellow-400/40 text-yellow-400 rounded-xl hover:bg-yellow-400/10 text-sm font-semibold transition-all duration-250"
                     >
-                      Send Another Enquiry
+                      Send Another Request
                     </button>
                   </motion.div>
                 ) : (
@@ -260,7 +329,7 @@ export default function Contact() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    onSubmit={handleSubmit}
+                    onSubmit={submit}
                     className="space-y-5"
                     noValidate
                   >
@@ -271,14 +340,15 @@ export default function Contact() {
                         </label>
                         <input
                           type="text"
+                          name="from_name"
                           placeholder="Jafar Mohamed"
                           value={form.name}
                           onChange={set("name")}
-                          className={errors.name ? inputError : inputNormal}
+                          className={errs.name ? error : normal}
                         />
-                        {errors.name && (
+                        {errs.name && (
                           <p className="text-rose-400 text-xs mt-1">
-                            {errors.name}
+                            {errs.name}
                           </p>
                         )}
                       </div>
@@ -289,97 +359,95 @@ export default function Contact() {
                         </label>
                         <input
                           type="email"
-                          placeholder="jafar@email.com"
+                          name="from_email"
+                          placeholder="jafar@gmail.com"
                           value={form.email}
                           onChange={set("email")}
-                          className={errors.email ? inputError : inputNormal}
+                          className={errs.email ? error : normal}
                         />
-                        {errors.email && (
+                        {errs.email && (
                           <p className="text-rose-400 text-xs mt-1">
-                            {errors.email}
+                            {errs.email}
                           </p>
                         )}
                       </div>
                     </div>
-
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
                         <label className="block text-slate-300 text-sm font-medium mb-1.5">
-                          Phone Number
+                          Phone
                         </label>
                         <input
                           type="tel"
-                          placeholder="+251 900 000 000"
+                          name="phone"
+                          placeholder="+251 91 000 0000"
                           value={form.phone}
                           onChange={set("phone")}
-                          className={inputNormal}
+                          className={normal}
                         />
                       </div>
                       <div>
                         <label className="block text-slate-300 text-sm font-medium mb-1.5">
-                          Material Needed
+                          Bar Size Needed
                         </label>
                         <select
-                          value={form.material}
-                          onChange={set("material")}
-                          className={`${inputNormal} appearance-none cursor-pointer`}
+                          name="bar_size"
+                          value={form.size}
+                          onChange={set("size")}
+                          className={`${normal} appearance-none cursor-pointer`}
                         >
                           <option value="" className="bg-[#111827]">
-                            Select a material…
+                            Select a size…
                           </option>
-                          <option value="rebar" className="bg-[#111827]">
-                            Steel Rebar
-                          </option>
-                          <option value="cement" className="bg-[#111827]">
-                            Cement
-                          </option>
-                          <option value="wire" className="bg-[#111827]">
-                            Binding Wire
-                          </option>
-                          <option value="mesh" className="bg-[#111827]">
-                            Steel Mesh / BRC
-                          </option>
-                          <option value="pipes" className="bg-[#111827]">
-                            Pipes
-                          </option>
-                          <option value="beams" className="bg-[#111827]">
-                            Steel Beams
-                          </option>
-                          <option value="roofing" className="bg-[#111827]">
-                            Roofing Sheets
-                          </option>
-                          <option value="other" className="bg-[#111827]">
-                            Other
-                          </option>
+                          {[
+                            "6 mm",
+                            "8 mm",
+                            "10 mm",
+                            "12 mm",
+                            "14 mm",
+                            "16 mm",
+                            "20 mm",
+                            "24 mm",
+                            "32 mm",
+                            "Multiple Sizes",
+                          ].map((s) => (
+                            <option key={s} value={s} className="bg-[#111827]">
+                              {s} Steel Bar
+                            </option>
+                          ))}
                         </select>
                       </div>
                     </div>
-
                     <div>
                       <label className="block text-slate-300 text-sm font-medium mb-1.5">
-                        Order Details / Message{" "}
-                        <span className="text-yellow-400">*</span>
+                        Order Details <span className="text-yellow-400">*</span>
                       </label>
                       <textarea
                         rows={4}
-                        placeholder="Tell us what you need — quantities, sizes, delivery location, etc."
+                        name="message"
+                        placeholder="Tell us the quantity, delivery location, and any other requirements…"
                         value={form.message}
                         onChange={set("message")}
-                        className={`${errors.message ? inputError : inputNormal} resize-none`}
+                        className={`${errs.message ? error : normal} resize-none`}
                       />
-                      {errors.message && (
+                      {errs.message && (
                         <p className="text-rose-400 text-xs mt-1">
-                          {errors.message}
+                          {errs.message}
                         </p>
                       )}
                     </div>
-
+                    {sendErr && (
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm">
+                        <MdError className="text-base shrink-0" />
+                        {sendErr}
+                      </div>
+                    )}
                     <motion.button
                       type="submit"
                       disabled={loading}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full flex items-center justify-center gap-2.5 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold text-sm rounded-xl hover:shadow-2xl hover:shadow-yellow-500/30 transition-all duration-300 disabled:opacity-70"
+                      className="w-full flex items-center justify-center gap-2.5 py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold text-sm rounded-xl hover:shadow-2xl hover:shadow-yellow-500/30 transition-all duration-300 disabled:opacity-70"
                     >
                       {loading ? (
                         <>
@@ -407,14 +475,19 @@ export default function Contact() {
                       ) : (
                         <>
                           <MdSend className="text-lg" />
-                          Send Enquiry
+                          Send Quote Request
                         </>
                       )}
                     </motion.button>
-
                     <p className="text-center text-slate-500 text-xs">
-                      Or call us directly at +251 923 634 847 for instant
-                      service
+                      Or call us directly at{" "}
+                      <a
+                        href="tel:+251923634847"
+                        className="text-yellow-400 font-semibold"
+                      >
+                        +251 92 363 4847
+                      </a>{" "}
+                      for instant service
                     </p>
                   </motion.form>
                 )}

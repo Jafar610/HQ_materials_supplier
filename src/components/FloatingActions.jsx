@@ -8,15 +8,14 @@ export default function FloatingActions() {
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 1.5, duration: 0.4 }}
-      whileHover={{ scale: 1.1 }}
+      whileHover={{ scale: 1.08 }}
       whileTap={{ scale: 0.93 }}
-      className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 px-5 py-3.5 bg-yellow-400 text-black font-bold text-sm rounded-full shadow-2xl shadow-yellow-500/40 hover:bg-yellow-300 transition-colors duration-200"
+      className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 px-5 py-3.5 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold text-sm rounded-full shadow-2xl shadow-yellow-500/40 hover:shadow-yellow-500/60 transition-all duration-300"
       aria-label="Call us"
     >
-      {/* Pulse ring */}
-      <span className="absolute inset-0 rounded-full bg-yellow-400 animate-ping opacity-25 pointer-events-none" />
+      <span className="absolute inset-0 rounded-full bg-yellow-400 animate-ping opacity-20 pointer-events-none" />
       <FaPhoneAlt className="text-base shrink-0" />
-      Call Now
+      +251 92 363 4847
     </motion.a>
   );
 }
